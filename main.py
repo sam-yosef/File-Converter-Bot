@@ -2,7 +2,7 @@ import pyrogram
 from pyrogram import Client
 from pyrogram import filters
 from pyrogram import enums
-from pyrogram.types import InlineKeyboardMarkup,InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 import os
 import shutil
@@ -16,20 +16,20 @@ import aifunctions
 import helperfunctions
 import mediainfo
 import guess
-import tormag
 import progconv
 import others
 import tictactoe
 
+import aiohttp
+from aiohttp import web
 
 # env
-bot_token = os.environ.get("TOKEN", "") 
-api_hash = os.environ.get("HASH", "") 
+bot_token = os.environ.get("TOKEN", "")
+api_hash = os.environ.get("HASH", "")
 api_id = os.environ.get("ID", "")
 
-
 # bot
-app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 os.system("chmod 777 c41lab.py negfix8 tgsconverter")
 
 
@@ -303,26 +303,20 @@ def negetivetopostive(message,oldmessage):
     file = app.download_media(message)
     output = file.split("/")[-1]
 
-    try:
-        print("using c41lab")
-        os.system(f'./c41lab.py "{file}" "{output}"')
-        app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **c41lab**", reply_to_message_id=message.id)
-        os.remove(output)
-    except: pass
-
-    try: 
-        print("using simple tool")
-        aifunctions.positiver(file,output)
-        app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **openCV**", reply_to_message_id=message.id)
-        os.remove(output)
-    except: pass
+    print("using c41lab")
+    os.system(f'./c41lab.py "{file}" "{output}"')
+    app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **c41lab**", reply_to_message_id=message.id)
+    os.remove(output)
     
-    try:
-        print("using negfix8")
-        os.system(f'./negfix8 "{file}" "{output}"')
-        app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **negfix8**", reply_to_message_id=message.id)
-        os.remove(output)
-    except: pass
+    print("using simple tool")
+    aifunctions.positiver(file,output)
+    app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **simple tool**", reply_to_message_id=message.id)
+    os.remove(output)
+    
+    print("using negfix8")
+    os.system(f'./negfix8 "{file}" "{output}"')
+    app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **negfix8**", reply_to_message_id=message.id)
+    os.remove(output)
 
     os.remove(file)
     app.delete_messages(message.chat.id,message_ids=[oldmessage.id])
@@ -338,7 +332,7 @@ def colorizeimage(message,oldmessage):
     os.remove(output)
 
     aifunctions.colorize_image(output,file)
-    app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **Local Model**", reply_to_message_id=message.id)
+    app.send_document(message.chat.id,document=output, force_document=True,caption="used tool -> **simple tool**", reply_to_message_id=message.id)
     os.remove(output)
 
     os.remove(file)
@@ -348,20 +342,41 @@ def colorizeimage(message,oldmessage):
 # dalle
 def genrateimages(message,prompt):
     
+    # requsting
+    # mdhash = aifunctions.mindalle(prompt,AutoCall=False) # min dalle
+    # ldhash = aifunctions.latdif(prompt,AutoCall=False) # latent 
+    filelist = aifunctions.dallemini(prompt) # dalle mini
+    # latfile = aifunctions.latentdiff(prompt) # latent direct
+    # imagelist = aifunctions.latdifstatus(ldhash,prompt) # latent get
+    # mdfile = aifunctions.mindallestatus(mdhash,prompt) # min dalle get
+    # sdhash = aifunctions.stablediff(prompt,AutoCall=False) # stable diff
+    # sdfile = aifunctions.stablediffstatus(sdhash,prompt) # stable diff get
+
     # dalle mini
-    filelist = aifunctions.dallemini(prompt)
     app.send_message(message.chat.id,"**DALLE MINI**", reply_to_message_id=message.id)
     for ele in filelist:
         app.send_document(message.chat.id,document=ele,force_document=True)
         os.remove(ele)
     os.rmdir(prompt)
 
-    # satbility ai
-    filelist = aifunctions.stabilityAI(prompt)
-    app.send_message(message.chat.id,"**STABLE DIFFUSION**", reply_to_message_id=message.id)
-    for ele in filelist:
-        app.send_document(message.chat.id,document=ele,force_document=True)
-        os.remove(ele)
+    # stable diffusion
+    # if sdfile !=  None:
+    #     app.send_message(message.chat.id,"**STABLE DIFFUSION**", reply_to_message_id=message.id)
+    #     app.send_document(message.chat.id,document=sdfile,force_document=True)
+    #     os.remove(sdfile)
+
+    # latent diffusion
+    # app.send_message(message.chat.id,f"__LATENT DIFFUSION :__ **{prompt}**", reply_to_message_id=message.id)
+    # app.send_document(message.chat.id,document=latfile,force_document=True)
+    # os.remove(latfile)
+    # for ele in imagelist:
+        # app.send_document(message.chat.id,document=ele,force_document=True)
+        # os.remove(ele)
+        
+    # min dalle
+    # app.send_message(message.chat.id,f"__MIN-DALLE :__ **{prompt}**", reply_to_message_id=message.id)
+    # app.send_document(message.chat.id,document=mdfile,force_document=True)
+    # os.remove(mdfile)
 
     # delete msg
     app.delete_messages(message.chat.id,message_ids=[message.id+1])
@@ -642,15 +657,7 @@ def transcript(message,oldmessage):
     app.delete_messages(message.chat.id,message_ids=[oldmessage.id])
     os.remove(file)
     
-
-# text to 3d
-def textTo3d(prompt,message,msg):
-    htmlfile = aifunctions.pointE(prompt)
-    app.send_document(message.chat.id, htmlfile, reply_to_message_id=message.id)
-    app.delete_messages(message.chat.id, message_ids=msg.id)
-    os.remove(htmlfile)
-
-
+    
 # text to speech 
 def speak(message,oldmessage):
     file = app.download_media(message)
@@ -854,7 +861,7 @@ def start(client: pyrogram.client.Client, message: pyrogram.types.messages_and_m
 @app.on_message(filters.command(['help']))
 def help(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
     oldm = app.send_message(message.chat.id,
-        "__Available Commands__\n\n**/start - To Check Availabe Conversions\n/help - This Message\n/imagegen - Text to Image\n/3dgen - Text to 3D\n/cancel - To Cancel\n/rename - To Rename File\n/read - To Read File\n/make - To Make File\n/guess - To Guess\n/tictactoe - To Play Tic Tac Toe\n/source - Github Source Code\n**", reply_to_message_id=message.id)
+                     "**/start - To Check Availabe Conversions\n/help - This Message\n/imagegen - Text to Image\n/videogen - Text to Video\n/cancel - To Cancel\n/rename - To Rename File\n/read - To Read File\n/make - To Make File\n/guess - To Guess\n/tictactoe - To Play Tic Tac Toe\n/source - Github Source Code\n**", reply_to_message_id=message.id)
     dm = threading.Thread(target=lambda:dltmsg(message,oldm),daemon=True)
     dm.start() 
 
@@ -918,6 +925,14 @@ def getpompt(client: pyrogram.client.Client, message: pyrogram.types.messages_an
 	ai.start()
 
 
+# videogen command
+@app.on_message(filters.command(["videogen"]))
+def videocog(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+    
+    app.send_message(message.chat.id,'__Currently Not Working__', reply_to_message_id=message.id)
+    return
+
+
 # read command
 @app.on_message(filters.command(['read']))
 def readcmd(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
@@ -953,19 +968,6 @@ def makecmd(client: pyrogram.client.Client, message: pyrogram.types.messages_and
     oldm = app.send_message(message.chat.id,'__Making File__', reply_to_message_id=message.id)
     mf = threading.Thread(target=lambda:makefile(message,text,oldm),daemon=True)
     mf.start()
-
-
-# Point E
-@app.on_message(filters.command(["3dgen"]))
-def send_gpt(client: pyrogram.client.Client,message: pyrogram.types.messages_and_media.message.Message,):
-    try: prompt = message.text.split("/3dgen ")[1]
-    except:
-        app.send_message(message.chat.id,'__Send Prompt with Command,\nUsage :__ **/3dgen a red motorcycle**', reply_to_message_id=message.id)
-        return	
-
-    msg = message.reply_text("__3Dizing...__", reply_to_message_id=message.id)
-    pnte = threading.Thread(target=lambda:textTo3d(prompt,message,msg),daemon=True)
-    pnte.start()
 
 
 # Tic Tac Toe Game
@@ -1063,13 +1065,6 @@ def documnet(client: pyrogram.client.Client, message: pyrogram.types.messages_an
                          f'__Detected Extension:__ **{dext}** 🗄\n__Do you want to Extract ?__\n\n{message.from_user.mention} __choose or click /cancel to Cancel or use /rename  to  Rename__',
                          reply_markup=ARCboard, reply_to_message_id=message.id)
 
-    # TOR
-    elif message.document.file_name.upper().endswith("TORRENT"):
-        os.remove(f'{message.from_user.id}.json')
-        oldm = app.send_message(message.chat.id,'__Getting Magnet Link__', reply_to_message_id=message.id)
-        ml = threading.Thread(target=lambda:getmag(message,oldm),daemon=True)
-        ml.start()
-        return
     
     # SUB
     elif message.document.file_name.upper().endswith(SUB):
@@ -1370,6 +1365,26 @@ def text(client: pyrogram.client.Client, message: pyrogram.types.messages_and_me
                 app.send_message(message.chat.id, '__for Text messages, You can use **/make** to Create a File from it.\n(first line of text will be trancated and used as filename)__', reply_to_message_id=message.id)
             
 
-#apprun
-print("Bot Started")
-app.run()
+# aiohttp app
+aiohttp_app = web.Application()
+
+
+async def handle(request):
+    text = "OK"
+    return web.Response(text=text, content_type="text/html")
+
+
+aiohttp_app.add_routes([web.get('/', handle)])
+
+
+def main():
+    # Run aiohttp server in separate thread
+    threading.Thread(target=web.run_app, args=(aiohttp_app, {"host": '0.0.0.0', "port": 8080}), daemon=True).start()
+
+    #apprun
+    print("Bot Started")
+    app.run()
+
+
+if __name__ == '__main__':
+    main()
