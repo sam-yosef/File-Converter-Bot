@@ -32,6 +32,22 @@ api_id = os.environ.get("ID", "")
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 os.system("chmod 777 c41lab.py negfix8 tgsconverter")
 
+# aiohttp app
+aiohttp_app = web.Application()
+
+
+async def handle(request):
+    text = "OK"
+    return web.Response(text=text, content_type="text/html")
+
+
+aiohttp_app.add_routes([web.get('/', handle)])
+
+
+def main():
+    # Run aiohttp server in separate thread
+    threading.Thread(target=web.run_app, args=(aiohttp_app, {"host": '0.0.0.0', "port": 8080}), daemon=True).start()
+
 
 # main function to follow
 def follow(message,inputt,new,old,oldmessage):
@@ -1364,22 +1380,6 @@ def text(client: pyrogram.client.Client, message: pyrogram.types.messages_and_me
             else:    
                 app.send_message(message.chat.id, '__for Text messages, You can use **/make** to Create a File from it.\n(first line of text will be trancated and used as filename)__', reply_to_message_id=message.id)
             
-
-# aiohttp app
-aiohttp_app = web.Application()
-
-
-async def handle(request):
-    text = "OK"
-    return web.Response(text=text, content_type="text/html")
-
-
-aiohttp_app.add_routes([web.get('/', handle)])
-
-
-def main():
-    # Run aiohttp server in separate thread
-    threading.Thread(target=web.run_app, args=(aiohttp_app, {"host": '0.0.0.0', "port": 8080}), daemon=True).start()
 
     #apprun
     print("Bot Started")
